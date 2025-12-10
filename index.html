@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Важно для мобильных -->
     <title>🎄 Новогодняя детская библиотека 🎄</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap');
@@ -15,6 +15,7 @@
             overflow-x: hidden;
             position: relative;
             transition: background 0.5s;
+            -webkit-tap-highlight-color: transparent; /* Убирает подсветку при тапе на мобильных */
         }
         
         body.night-mode {
@@ -630,16 +631,130 @@
             transition: transform 0.3s;
         }
         .reset-btn:hover { transform: scale(1.05); }
+
+        /* --- АДАПТАЦИЯ ПОД МОБИЛЬНЫЕ УСТРОЙСТВА --- */
         
+        @media (max-width: 1024px) {
+            section { padding: 60px 20px; }
+            #welcome h1 { font-size: 3em; }
+        }
+
         @media (max-width: 768px) {
-            #welcome h1 { font-size: 2.5em; }
-            .book { width: 180px; height: 260px; }
-            .book.active { width: 90vw; height: 70vh; max-width: 400px; }
-            .game-panel { top: 90px; right: 10px; min-width: 200px; padding: 15px; }
-            .advent-grid { grid-template-columns: repeat(5, 1fr); }
-            .advent-door { width: 60px; height: 60px; }
-            .santa-helper { width: 80px; height: 80px; font-size: 40px; bottom: 80px; }
-            .movies-grid { grid-template-columns: 1fr; }
+            /* Общие настройки */
+            body { font-size: 14px; }
+            section { padding: 40px 15px; margin: 20px auto; width: 95%; }
+            h2 { font-size: 2em; margin-bottom: 20px; }
+            
+            /* Панель управления (счет и кнопки) */
+            .game-panel {
+                position: static; /* Убираем фиксирование */
+                margin: 60px auto 20px; /* Отступ сверху для кнопок */
+                width: 90%;
+                text-align: center;
+                min-width: auto;
+            }
+            .toy-counter { border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px; }
+            
+            /* Кнопки управления (солнце/музыка) */
+            .theme-toggle, .music-control {
+                width: 45px;
+                height: 45px;
+                top: 10px;
+            }
+            .theme-toggle { left: 10px; }
+            .music-control { 
+                top: 10px; 
+                right: 10px; 
+                bottom: auto; /* Перемещаем музыку наверх */
+                background: linear-gradient(45deg, #e74c3c, #c0392b);
+            }
+            .theme-icon, .music-icon { font-size: 20px; }
+
+            /* Приветствие */
+            #welcome { padding: 80px 20px 40px; }
+            #welcome h1 { font-size: 2.2em; line-height: 1.2; }
+            #welcome p { font-size: 1.1em; }
+            
+            /* Таймер и цитаты */
+            .countdown { padding: 15px; width: 100%; }
+            .countdown-timer { font-size: 1.8em; }
+            .quote-generator { padding: 20px; margin-top: 20px; }
+            .quote-box { font-size: 1.1em; padding: 20px; }
+            
+            /* Адвент-календарь */
+            .advent-grid { 
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); 
+                gap: 10px;
+            }
+            .advent-door { width: 100%; height: 70px; }
+            .advent-number { font-size: 1.5em; }
+            
+            /* Модальное окно Адвента */
+            .advent-modal { width: 95%; padding: 25px; }
+            .advent-modal h3 { font-size: 1.5em; }
+
+            /* Книги */
+            #books { gap: 20px; padding-bottom: 40px; }
+            .book { width: 140px; height: 200px; }
+            
+            /* Активная книга (открытая) */
+            .book.active {
+                width: 95%;
+                height: 85vh; /* Высота 85% от экрана */
+                max-width: none;
+            }
+            .book-desc { padding: 50px 20px 20px; } /* Место под крестик */
+            .book-desc h3 { font-size: 1.5em; margin-top: 10px; }
+            .close { top: 10px; right: 10px; background: rgba(0,0,0,0.1); }
+
+            /* Автор */
+            .author-section { padding: 30px 20px; }
+            .author-photo { width: 120px; height: 120px; }
+            .author-section h2 { font-size: 2em; }
+
+            /* Челлендж и списки */
+            .challenge-item { padding: 10px; font-size: 0.95em; }
+            
+            /* Сетка для кино, поделок, галереи */
+            .movies-grid, .crafts-grid { grid-template-columns: 1fr; gap: 20px; }
+            .movie-poster { height: 250px; }
+            
+            /* Санта-помощник */
+            .santa-helper {
+                width: 70px;
+                height: 70px;
+                font-size: 35px;
+                bottom: 20px;
+                left: 10px;
+            }
+            .santa-message {
+                bottom: 100px;
+                left: 10px;
+                width: 250px;
+                font-size: 0.9em;
+            }
+            .santa-message::after {
+                left: 20px; /* Стрелочка сообщения */
+            }
+
+            /* Кнопка сброса */
+            .reset-btn {
+                bottom: 20px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 12px;
+                background: rgba(127, 140, 141, 0.9);
+            }
+            
+            /* Скрытые игрушки */
+            .hidden-toy { font-size: 35px; } /* Чуть крупнее, чтобы пальцем попасть */
+        }
+
+        /* Для совсем маленьких экранов (iPhone SE и т.д.) */
+        @media (max-width: 380px) {
+            .book { width: 100%; height: 400px; max-width: 260px; } /* Одна книга в ряд */
+            #welcome h1 { font-size: 1.8em; }
+            .countdown-timer { font-size: 1.5em; }
         }
     </style>
 </head>
@@ -1104,7 +1219,8 @@
         canvas.height = window.innerHeight;
 
         const snowflakes = [];
-        const maxSnowflakes = 30;
+        // Адаптивное количество снежинок
+        const maxSnowflakes = window.innerWidth < 768 ? 15 : 50;
 
         for (let i = 0; i < maxSnowflakes; i++) {
             snowflakes.push({

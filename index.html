@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Новогодняя детская библиотека 🎄</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.5s;
+        }
+        
+        body.night-mode {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+        
+        /* Звёзды через CSS */
+        .stars { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 1;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, white, transparent),
+                radial-gradient(2px 2px at 60px 70px, white, transparent),
+                radial-gradient(1px 1px at 50px 50px, white, transparent),
+                radial-gradient(1px 1px at 130px 80px, white, transparent),
+                radial-gradient(2px 2px at 90px 10px, white, transparent);
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 3s infinite;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+        
+        /* Северное сияние */
+        .aurora {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.6;
+        }
+        body.night-mode .aurora {
+            display: block;
+            animation: aurora 15s infinite;
+        }
+        @keyframes aurora {
+            0%, 100% { background: linear-gradient(90deg, transparent, rgba(0,255,157,0.3), transparent); }
+            25% { background: linear-gradient(90deg, transparent, rgba(128,0,255,0.3), transparent); }
+            50% { background: linear-gradient(90deg, transparent, rgba(0,191,255,0.3), transparent); }
+            75% { background: linear-gradient(90deg, transparent, rgba(255,0,128,0.3), transparent); }
+        }
+        
+        /* Canvas снег */
+        #snowCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Игрушки */
+        .hidden-toy {
+            position: fixed;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.3s;
+            will-change: transform;
+        }
+        .hidden-toy:hover { transform: scale(1.5) rotate(20deg); }
+        .hidden-toy.found { animation: found 0.5s forwards; pointer-events: none; }
+        @keyframes found { 
+            0% { transform: scale(1) rotate(0); }
+            50% { transform: scale(2) rotate(360deg); }
+            100% { transform: scale(0) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Помощник */
+        .santa-helper {
+            position: fixed;
+            bottom: 100px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            cursor: pointer;
+            z-index: 9998;
+            box-shadow: 0 10px 30px rgba(231,76,60,0.5);
+            transition: transform 0.3s;
+            will-change: transform;
+        }
+        .santa-helper:hover { transform: scale(1.1); }
+        
+        .santa-message {
+            position: fixed;
+            bottom: 240px;
+            left: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 300px;
+            z-index: 9999;
+            display: none;
+        }
+        .santa-message.active { display: block; animation: messageAppear 0.5s; }
+        @keyframes messageAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .santa-message::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+        .santa-message p { color: #2c3e50; line-height: 1.6; }
+        
+        /* Кнопки управления */
+        .theme-toggle, .music-control {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            z-index: 9998;
+            transition: transform 0.3s;
+        }
+        .theme-toggle { top: 20px; left: 20px; background: linear-gradient(45deg, #3498db, #2980b9); }
+        .music-control { bottom: 20px; right: 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .theme-toggle:hover, .music-control:hover { transform: scale(1.1); }
+        .music-control.playing { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .theme-icon, .music-icon { font-size: 28px; }
+        
+        .container { min-height: 100vh; position: relative; }
+        section { padding: 100px 20px; text-align: center; max-width: 1400px; margin: 0 auto; }
+        
+        /* Игровая панель */
+        .game-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9));
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 9999;
+            min-width: 250px;
+        }
+        body.night-mode .game-panel {
+            background: linear-gradient(145deg, rgba(30,30,30,0.95), rgba(40,40,40,0.9));
+            color: white;
+        }
+        .game-panel h4 { color: #e74c3c; margin-bottom: 10px; font-size: 1.2em; }
+        .score { font-size: 2em; color: #2c3e50; font-weight: bold; }
+        body.night-mode .score { color: white; }
+        .badge { display: inline-block; background: gold; color: #000; padding: 5px 10px; border-radius: 15px; margin-top: 10px; font-size: 0.9em; }
+        .toy-counter {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e74c3c;
+        }
+        .toy-counter h4 { color: #27ae60; font-size: 1em; margin-bottom: 5px; }
+        .toy-progress { font-size: 1.5em; font-weight: bold; color: #27ae60; }
+        
+        #welcome { 
+            background: linear-gradient(45deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85)); 
+            color: #2c3e50; 
+            padding: 120px 40px;
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            font-family: 'Dancing Script', cursive;
+        }
+        body.night-mode #welcome {
+            background: linear-gradient(45deg, rgba(30,30,30,0.95), rgba(40,40,40,0.85));
+            color: white;
+        }
+        #welcome h1 { font-size: 4em; margin-bottom: 20px; color: #e74c3c; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        #welcome p { font-size: 1.5em; color: #34495e; }
+        body.night-mode #welcome p { color: #ecf0f1; }
+        
+        .countdown {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+            display: inline-block;
+        }
+        .countdown h3 { margin-bottom: 15px; }
+        .countdown-timer { font-size: 2.5em; font-weight: bold; }
+        
+        .quote-generator {
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9));
+            padding: 40px;
+            border-radius: 30px;
+            margin-top: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        body.night-mode .quote-generator {
+            background: linear-gradient(145deg, rgba(30,30,30,0.95), rgba(40,40,40,0.9));
+        }
+        .quote-box {
+            min-height: 150px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-style: italic;
+            color: #2c3e50;
+            line-height: 1.8;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        body.night-mode .quote-box {
+            background: rgba(50,50,50,0.8);
+            color: #ecf0f1;
+        }
+        .quote-author { font-weight: bold; color: #e74c3c; margin-top: 15px; }
+        .generate-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(52,152,219,0.4);
+        }
+        .generate-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(52,152,219,0.6); }
+        
+        /* Общие стили секций */
+        #advent, #challenge, #quiz, #crafts, #gallery, #movies {
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9));
+            padding: 60px 40px;
+            border-radius: 30px;
+            margin: 40px auto;
+            max-width: 1400px;
+        }
+        body.night-mode #advent, 
+        body.night-mode #challenge, 
+        body.night-mode #quiz, 
+        body.night-mode #crafts, 
+        body.night-mode #gallery,
+        body.night-mode #movies {
+            background: linear-gradient(145deg, rgba(30,30,30,0.95), rgba(40,40,40,0.9));
+            color: white;
+        }
+        
+        h2 { color: #e74c3c; font-size: 2.5em; margin-bottom: 30px; font-family: 'Dancing Script', cursive; }
+        
+        /* Адвент-календарь */
+        .advent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .advent-door {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .advent-door:hover { transform: scale(1.05); }
+        .advent-door.locked { opacity: 0.5; cursor: not-allowed; }
+        .advent-door.opened { background: linear-gradient(45deg, #27ae60, #229954); }
+        .advent-number { font-size: 2em; color: white; font-weight: bold; }
+        .advent-icon { font-size: 1.5em; margin-top: 5px; }
+        
+        .advent-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 10003;
+            max-width: 500px;
+            width: 90%;
+        }
+        body.night-mode .advent-modal {
+            background: rgba(30,30,30,0.98);
+            color: white;
+        }
+        .advent-modal.active { display: block; animation: modalAppear 0.5s; }
+        @keyframes modalAppear { from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        .advent-modal h3 { color: #e74c3c; font-size: 2em; margin-bottom: 20px; font-family: 'Dancing Script', cursive; }
+        .advent-content { font-size: 1.2em; line-height: 1.8; color: #2c3e50; }
+        body.night-mode .advent-content { color: #ecf0f1; }
+        .close-modal {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        
+        /* Челлендж */
+        .challenge-list { text-align: left; margin: 30px 0; }
+        .challenge-item { 
+            padding: 15px; 
+            margin: 10px 0; 
+            background: white; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        body.night-mode .challenge-item {
+            background: rgba(50,50,50,0.8);
+            color: white;
+        }
+        .challenge-item:hover { transform: translateX(10px); }
+        .challenge-item.completed { background: #d4edda; }
+        body.night-mode .challenge-item.completed { background: rgba(39,174,96,0.3); }
+        .checkbox { width: 25px; height: 25px; border: 2px solid #e74c3c; border-radius: 5px; flex-shrink: 0; }
+        .checkbox.checked { background: #28a745; border-color: #28a745; position: relative; }
+        .checkbox.checked::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; }
+        .progress-bar { width: 100%; height: 30px; background: #e0e0e0; border-radius: 15px; overflow: hidden; margin-top: 20px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.5s; text-align: center; color: white; line-height: 30px; font-weight: bold; }
+        
+        /* Книги */
+        #books { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding-bottom: 100px; }
+        
+        .book { 
+            width: 220px; 
+            height: 320px;
+            perspective: 1500px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .book:hover { transform: translateY(-10px); }
+        .book-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .book-front, .book-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .book-front { background: linear-gradient(145deg, #ffffff, #f0f0f0); }
+        .book-front img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .book-back {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        body.night-mode .book-back {
+            background: linear-gradient(145deg, rgba(30,30,30,0.98), rgba(40,40,40,0.95));
+        }
+        .book.active {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 700px;
+            z-index: 10001;
+        }
+        .book.active .book-inner { transform: rotateY(180deg); }
+        .book-desc {
+            width: 100%;
+            height: 100%;
+            padding: 40px 30px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .book-desc h3 { color: #2c3e50; font-size: 2em; margin-bottom: 20px; font-family: 'Dancing Script', cursive; text-align: center; }
+        body.night-mode .book-desc h3 { color: white; }
+        .book-desc p { color: #34495e; line-height: 1.8; margin-bottom: 15px; }
+        body.night-mode .book-desc p { color: #ecf0f1; }
+        .close { 
+            position: absolute; top: 15px; right: 20px; font-size: 32px; cursor: pointer; color: #e74c3c;
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: all 0.3s; z-index: 10002;
+        }
+        .close:hover { background: rgba(231,76,60,0.1); transform: rotate(90deg); }
+        .author-btn, .audio-btn { 
+            background: linear-gradient(45deg, #e74c3c, #c0392b); 
+            color: white; padding: 15px 30px; border: none; border-radius: 50px; 
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; 
+            box-shadow: 0 10px 25px rgba(231,76,60,0.4); width: 100%; margin-top: 10px;
+        }
+        .audio-btn { background: linear-gradient(45deg, #3498db, #2980b9); box-shadow: 0 10px 25px rgba(52,152,219,0.4); }
+        .author-btn:hover, .audio-btn:hover { transform: translateY(-3px); }
+        
+        /* Автор */
+        .author-section { 
+            background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9)); 
+            margin: 40px auto; padding: 60px; border-radius: 30px; max-width: 900px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2); 
+        }
+        body.night-mode .author-section {
+            background: linear-gradient(145deg, rgba(30,30,30,0.95), rgba(40,40,40,0.9));
+            color: white;
+        }
+        .author-section h2 { font-size: 3em; color: #e74c3c; margin-bottom: 30px; font-family: 'Dancing Script', cursive; }
+        .author-photo { width: 200px; height: 200px; border-radius: 50%; margin: 0 auto 30px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: block; }
+        .author-info { opacity: 0; transform: translateY(20px); transition: all 1s; }
+        .author-info.active { opacity: 1; transform: translateY(0); }
+        .author-info p { margin-bottom: 20px; font-size: 1.1em; line-height: 1.8; text-align: left; }
+        
+        /* Викторина */
+        .quiz-question { font-size: 1.3em; margin-bottom: 20px; color: #2c3e50; }
+        body.night-mode .quiz-question { color: white; }
+        .quiz-options { display: flex; flex-direction: column; gap: 15px; }
+        .quiz-option {
+            padding: 20px;
+            background: white;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        body.night-mode .quiz-option {
+            background: rgba(50,50,50,0.8);
+            color: white;
+        }
+        .quiz-option:hover { background: #f8f9fa; transform: translateX(10px); }
+        body.night-mode .quiz-option:hover { background: rgba(70,70,70,0.8); }
+        .quiz-option.correct { background: #d4edda; border-color: #28a745; }
+        .quiz-option.wrong { background: #f8d7da; border-color: #dc3545; }
+        .quiz-result { font-size: 1.5em; margin-top: 30px; padding: 20px; border-radius: 15px; }
+        .quiz-result.success { background: #d4edda; color: #155724; }
+        
+        /* КИНОЗАЛ */
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .movie-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        body.night-mode .movie-card {
+            background: rgba(50,50,50,0.8);
+        }
+        .movie-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .movie-poster {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+        }
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .movie-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: white;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .movie-card:hover .movie-play {
+            opacity: 1;
+        }
+        
+        .movie-card h3 {
+            color: #2c3e50;
+            padding: 20px 20px 10px;
+            font-size: 1.5em;
+        }
+        body.night-mode .movie-card h3 { color: white; }
+        
+        .movie-age {
+            color: #e74c3c;
+            font-weight: bold;
+            padding: 0 20px;
+            font-size: 0.9em;
+        }
+        
+        .movie-card p {
+            padding: 0 20px 10px;
+            color: #34495e;
+            line-height: 1.6;
+        }
+        body.night-mode .movie-card p { color: #ecf0f1; }
+        
+        .movie-rating {
+            padding: 0 20px;
+            font-size: 1.1em;
+            color: #f39c12;
+        }
+        
+        .movie-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: calc(100% - 40px);
+            margin: 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .movie-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231,76,60,0.4);
+        }
+        
+        /* Поделки */
+        .crafts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .craft-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        body.night-mode .craft-card {
+            background: rgba(50,50,50,0.8);
+            color: white;
+        }
+        .craft-card:hover { transform: translateY(-10px); }
+        .craft-card h3 { color: #2c3e50; margin-bottom: 15px; }
+        body.night-mode .craft-card h3 { color: white; }
+        .craft-card ul { text-align: left; line-height: 2; color: #34495e; }
+        body.night-mode .craft-card ul { color: #ecf0f1; }
+        
+        /* Галерея */
+        .gallery-slider { display: flex; overflow-x: auto; gap: 20px; padding: 20px 0; scroll-snap-type: x mandatory; }
+        .gallery-item {
+            flex: 0 0 300px;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            scroll-snap-align: start;
+            position: relative;
+        }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: white; padding: 15px; }
+        
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; }
+        .overlay.active { display: block; }
+        
+        /* Кнопка сброса */
+        .reset-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 9998;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+        }
+        .reset-btn:hover { transform: scale(1.05); }
+        
+        @media (max-width: 768px) {
+            #welcome h1 { font-size: 2.5em; }
+            .book { width: 180px; height: 260px; }
+            .book.active { width: 90vw; height: 70vh; max-width: 400px; }
+            .game-panel { top: 90px; right: 10px; min-width: 200px; padding: 15px; }
+            .advent-grid { grid-template-columns: repeat(5, 1fr); }
+            .advent-door { width: 60px; height: 60px; }
+            .santa-helper { width: 80px; height: 80px; font-size: 40px; bottom: 80px; }
+            .movies-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora"></div>
+    <div class="stars"></div>
+    <canvas id="snowCanvas"></canvas>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="theme-toggle" id="themeToggle">
+        <div class="theme-icon">☀️</div>
+    </div>
+    
+    <div class="music-control" id="musicControl">
+        <div class="music-icon">🎵</div>
+    </div>
+    
+    <div class="santa-helper" id="santaHelper">🎅</div>
+    <div class="santa-message" id="santaMessage">
+        <p>Привет! Я Дед Мороз, твой помощник!</p>
+    </div>
+    
+    <button class="reset-btn" onclick="Progress.reset()">🔄 Сбросить прогресс</button>
+    
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="game-panel">
+        <h4>🎁 Найди игрушки!</h4>
+        <div class="toy-progress"><span id="toyScore">0</span>/10</div>
+        <div id="badges"></div>
+    </div>
+    
+    <div class="advent-modal" id="adventModal">
+        <h3 id="adventTitle"></h3>
+        <div class="advent-content" id="adventContent"></div>
+        <button class="close-modal" onclick="closeAdventModal()">Закрыть</button>
+    </div>
+    
+    <div class="container">
+        <section id="welcome">
+            <h1>🎄 Новогодняя детская библиотека 🎄</h1>
+            <p>Погрузись в волшебный мир новогодних сказок!</p>
+            
+            <div class="countdown">
+                <h3>⏰ До Нового года:</h3>
+                <div class="countdown-timer" id="countdown">Загрузка...</div>
+            </div>
+            
+            <div class="quote-generator">
+                <div class="quote-box" id="quoteBox">
+                    ✨ Нажми кнопку и получи волшебную цитату!
+                </div>
+                <button class="generate-btn" onclick="generateQuote()">🎁 Получить цитату</button>
+            </div>
+        </section>
+
+        <section id="advent">
+            <h2>🎄 Новогодний адвент-календарь</h2>
+            <p>Открывай по одному окошку каждый день!</p>
+            <div class="advent-grid" id="adventGrid"></div>
+        </section>
+
+        <section id="challenge">
+            <h2>📖 Читательский челлендж</h2>
+            <p>Выполни все задания!</p>
+            <div class="challenge-list" id="challengeList"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+        </section>
+
+        <section id="books"></section>
+
+        <!-- КИНОЗАЛ -->
+        <section id="movies">
+            <h2>🎬 Новогодний кинозал</h2>
+            <p>Смотри всей семьёй!</p>
+            
+            <div class="movies-grid">
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=600&fit=crop" alt="Полярный экспресс" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>🚂 Полярный экспресс</h3>
+                    <p class="movie-age">6+ лет</p>
+                    <p>Мальчик отправляется в волшебное путешествие на Северный полюс к Санта-Клаусу.</p>
+                    <div class="movie-rating">⭐⭐⭐⭐⭐ (4.8/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=polar+express+trailer')">🎥 Найти трейлер</button>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1512909006721-3d6018887383?w=400&h=600&fit=crop" alt="Клаус" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>🎅 Клаус</h3>
+                    <p class="movie-age">7+ лет</p>
+                    <p>История о том, как появился Санта-Клаус. Красивая анимация от Netflix.</p>
+                    <div class="movie-rating">⭐⭐⭐⭐⭐ (4.9/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=klaus+movie+trailer')">🎥 Найти трейлер</button>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1482686115713-0fbcaced6e28?w=400&h=600&fit=crop" alt="Холодное сердце" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>❄️ Холодное сердце</h3>
+                    <p class="movie-age">5+ лет</p>
+                    <p>Анна и Эльза в зимнем волшебном королевстве. Песня "Let It Go"!</p>
+                    <div class="movie-rating">⭐⭐⭐⭐⭐ (4.7/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=frozen+trailer')">🎥 Найти трейлер</button>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=400&h=600&fit=crop" alt="Морозко" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>⛄ Морозко</h3>
+                    <p class="movie-age">4+ лет</p>
+                    <p>Классическая советская сказка про Настеньку и Деда Мороза.</p>
+                    <div class="movie-rating">⭐⭐⭐⭐⭐ (5.0/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=морозко+фильм')">🎥 Найти трейлер</button>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1544198365-f5d60b6d8190?w=400&h=600&fit=crop" alt="Секретная служба Санты" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>🎁 Секретная служба Санты</h3>
+                    <p class="movie-age">6+ лет</p>
+                    <p>Приключения эльфа, который должен доставить забытый подарок.</p>
+                    <div class="movie-rating">⭐⭐⭐⭐ (4.6/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=arthur+christmas+trailer')">🎥 Найти трейлер</button>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        <img src="https://images.unsplash.com/photo-1483086431886-3590a88317fe?w=400&h=600&fit=crop" alt="Чебурашка" loading="lazy">
+                        <div class="movie-play">▶️</div>
+                    </div>
+                    <h3>🐻 Чебурашка</h3>
+                    <p class="movie-age">3+ лет</p>
+                    <p>Новый фильм про любимого героя! Зимнее приключение.</p>
+                    <div class="movie-rating">⭐⭐⭐⭐ (4.5/5)</div>
+                    <button class="movie-btn" onclick="openTrailer('https://www.youtube.com/results?search_query=чебурашка+2023+трейлер')">🎥 Найти трейлер</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="quiz">
+            <h2>🎯 Новогодняя викторина</h2>
+            <div id="quizContent"></div>
+        </section>
+
+        <section id="crafts">
+            <h2>✂️ Сделай сам!</h2>
+            <p>Новогодние поделки</p>
+            <div class="crafts-grid">
+                <div class="craft-card">
+                    <h3>🎅 Маска Деда Мороза</h3>
+                    <ul>
+                        <li>Вырежи шаблон из красного картона</li>
+                        <li>Добавь белую бороду из ваты</li>
+                        <li>Нарисуй добрые глаза</li>
+                        <li>Прикрепи резинку</li>
+                    </ul>
+                </div>
+                <div class="craft-card">
+                    <h3>❄️ Снежинка из бумаги</h3>
+                    <ul>
+                        <li>Сложи бумагу треугольником</li>
+                        <li>Вырежи узоры по краям</li>
+                        <li>Разверни снежинку</li>
+                        <li>Укрась блёстками</li>
+                    </ul>
+                </div>
+                <div class="craft-card">
+                    <h3>🎄 Ёлочная гирлянда</h3>
+                    <ul>
+                        <li>Вырежи флажки из цветной бумаги</li>
+                        <li>Нарисуй новогодних героев</li>
+                        <li>Приклей на нитку</li>
+                        <li>Укрась комнату!</li>
+                    </ul>
+                </div>
+                <div class="craft-card">
+                    <h3>⛄ Снеговик из носка</h3>
+                    <ul>
+                        <li>Наполни белый носок рисом</li>
+                        <li>Перевяжи ниткой на 3 части</li>
+                        <li>Приклей пуговицы и глазки</li>
+                        <li>Надень шапочку!</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="gallery">
+            <h2>🎨 Галерея читателей</h2>
+            <p>Работы наших юных художников</p>
+            <div class="gallery-slider">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=300&h=400&fit=crop" alt="Рисунок 1" loading="lazy">
+                    <div class="gallery-caption">Маша, 8 лет - "Снежная королева"</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1482686115713-0fbcaced6e28?w=300&h=400&fit=crop" alt="Рисунок 2" loading="lazy">
+                    <div class="gallery-caption">Петя, 7 лет - "Дед Мороз"</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1512909006721-3d6018887383?w=300&h=400&fit=crop" alt="Рисунок 3" loading="lazy">
+                    <div class="gallery-caption">Аня, 9 лет - "Снегурочка"</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1544198365-f5d60b6d8190?w=300&h=400&fit=crop" alt="Рисунок 4" loading="lazy">
+                    <div class="gallery-caption">Витя, 6 лет - "Зимний лес"</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="authors" style="display: none;">
+            <div id="author-content"></div>
+        </section>
+    </div>
+
+    <script>
+        // РАСШИРЕННАЯ БИБЛИОТЕКА КНИГ
+        const books = [
+            {
+                title: "Маленький Дед Мороз", 
+                author: "Ану Штонер", 
+                description: "Маленькому Деду Морозу не разрешают развозить подарки, ведь он ещё слишком мал. Но он решает доказать всем, что готов к большому делу! Трогательная история о том, что размер не важен, когда есть большое сердце.",
+                cover: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Снежный сон", 
+                author: "Эрик Карл", 
+                description: "Волшебная история о снеге и зимних снах с уникальными вырезами, создающими эффект падения снежинок. Засыпай и мечтай вместе с героями этой нежной зимней сказки.",
+                cover: "https://images.unsplash.com/photo-1482686115713-0fbcaced6e28?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Слонёнок Оливер", 
+                author: "Лу Пикок", 
+                description: "Мальчик Томми теряет любимого слонёнка во время новогодних покупок в большом магазине. Началось приключение с поиском и счастливым воссоединением! История о дружбе и верности.",
+                cover: "https://images.unsplash.com/photo-1545662521-d2c2c3552f36?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Чик и Брики", 
+                author: "Аксель Шеффлер", 
+                description: "Заяц Чик и мышь Брики украшают ёлку вкусными украшениями из печенья и конфет. Но они mysteriously начинают исчезать! Кто же их крадёт? Веселая новогодняя детективная история.",
+                cover: "https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Снежная королева", 
+                author: "Ганс Христиан Андерсен", 
+                description: "Классическая сказка о дружбе Герды и Кая, попавшего под влияние холодной Снежной королевы. Герда отправляется в опасное путешествие, чтобы спасти своего друга. История о силе любви и преданности.",
+                cover: "https://images.unsplash.com/photo-1544198365-f5d60b6d8190?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Снегурочка", 
+                author: "Русская народная сказка", 
+                description: "Дед с бабой слепили снежную девочку, и она ожила! Снегурочка учится жить среди людей, радуется зиме, но боится весны и тепла. Добрая русская сказка о чуде и волшебстве.",
+                cover: "https://images.unsplash.com/photo-1483086431886-3590a88317fe?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Первый снег", 
+                author: "Леонид Гор", 
+                description: "Зайчонок Данни впервые в жизни видит снег. Он удивляется белому покрывалу на земле и исследует зимний лес. Уютная зимняя история для самых маленьких читателей.",
+                cover: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Щелкунчик", 
+                author: "Гофман", 
+                description: "Классическая рождественская сказка о храбром Щелкунчике и девочке Мари. В новогоднюю ночь игрушки оживают, и начинается волшебное приключение в Королевстве сладостей!",
+                cover: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=300&h=400&fit=crop"
+            },
+            {
+                title: "12 месяцев", 
+                author: "Самуил Маршак", 
+                description: "Зимой капризная принцесса захотела подснежники. Падчерица отправляется в лес и встречает всех 12 месяцев у костра. Они помогают девочке, и происходит чудо! Сказка о доброте.",
+                cover: "https://images.unsplash.com/photo-1545662521-d2c2c3552f36?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Новогодний гусь", 
+                author: "Ротраут Бернер", 
+                description: "Ритмичная история про гуся, который готовится к празднику целую неделю. Понедельник - убирает, вторник - готовит... Бестселлер 2024! Учим дни недели весело!",
+                cover: "https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Рождественская история", 
+                author: "Чарльз Диккенс", 
+                description: "Сказка о скупом мистере Скрудже, которого посещают три духа Рождества. Они показывают ему прошлое, настоящее и будущее. История о том, как важно быть добрым и щедрым.",
+                cover: "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=300&h=400&fit=crop"
+            },
+            {
+                title: "Снежинки-балеринки", 
+                author: "Брайони Мэй Смит", 
+                description: "Волшебные снежинки превращаются в маленьких балерин и танцуют зимний балет! Красивая книга про мечты, балет и новогоднее волшебство. Для юных любителей танцев.",
+                cover: "https://images.unsplash.com/photo-1482686115713-0fbcaced6e28?w=300&h=400&fit=crop"
+            }
+        ];
+
+        const authorsInfo = {
+            "Ану Штонер": {
+                photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
+                bio: "Британская писательница и иллюстратор детских книг. Её серия про Маленького Деда Мороза покорила сердца миллионов детей по всему миру.",
+                books: "Маленький Дед Мороз (серия из 5 книг)",
+                fact: "Любит рисовать в окружении своих 4 детей!"
+            },
+            "Эрик Карл": {
+                photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
+                bio: "Американский автор и иллюстратор, известный своими книгами с вырезами. Лауреат множества премий в области детской литературы.",
+                books: "Гусеница-плотоглот, Снежный сон, Рожденный сегодня",
+                fact: "Его книги переведены на 62 языка мира!"
+            },
+            "Лу Пикок": {
+                photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop",
+                bio: "Британская писательница, создающая трогательные истории о семье и потерянных игрушках.",
+                books: "Слонёнок Оливер, Потерянный мишка",
+                fact: "Вдохновляется собственными детьми и их игрушками."
+            },
+            "Аксель Шеффлер": {
+                photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
+                bio: "Немецкий иллюстратор, создавший знаменитых Чика и Брики вместе с Джулией Дональдсон.",
+                books: "Чик и Брики, Принцесса и Волшебник, Груффало",
+                fact: "Нарисовал более 100 книг для детей!"
+            },
+            "Ганс Христиан Андерсен": {
+                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                bio: "Датский сказочник XIX века. Автор самых известных и любимых сказок мира.",
+                books: "Русалочка, Принцесса на горошине, Снежная королева, Дюймовочка",
+                fact: "Его сказки читают уже более 150 лет!"
+            },
+            "Русская народная сказка": {
+                photo: "https://images.unsplash.com/photo-1482686115713-0fbcaced6e28?w=200&h=200&fit=crop",
+                bio: "Классическая русская сказка, собранная из народного фольклора и передаваемая из поколения в поколение.",
+                books: "Снегурочка, Морозко, Царевна-лягушка, По щучьему велению",
+                fact: "Стала основой для оперы Римского-Корсакова."
+            },
+            "Леонид Гор": {
+                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                bio: "Советский и американский художник-иллюстратор, автор нежных историй для самых маленьких.",
+                books: "Первый снег, Мой щенок, Зайчонок Данни",
+                fact: "Писал простые истории о больших чувствах."
+            },
+            "Гофман": {
+                photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
+                bio: "Немецкий писатель-романтик XIX века, создатель незабываемых сказок.",
+                books: "Щелкунчик, Крошка Цахес, Песочный человек",
+                fact: "Щелкунчик стал основой для балета Чайковского!"
+            },
+            "Самуил Маршак": {
+                photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
+                bio: "Советский поэт, драматург, переводчик. Классик детской литературы.",
+                books: "12 месяцев, Кошкин дом, Сказка о глупом мышонке",
+                fact: "Перевёл на русский язык сонеты Шекспира!"
+            },
+            "Ротраут Бернер": {
+                photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
+                bio: "Немецкая художница и писательница. Создаёт яркие книги-картинки.",
+                books: "Новогодний гусь, Зимняя книга, Летняя книга",
+                fact: "Её книги изданы тиражом более 10 миллионов!"
+            },
+            "Чарльз Диккенс": {
+                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                bio: "Английский писатель XIX века, автор классических произведений мировой литературы.",
+                books: "Рождественская история, Оливер Твист, Дэвид Копперфильд",
+                fact: "Рождественскую историю написал всего за 6 недель!"
+            },
+            "Брайони Мэй Смит": {
+                photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop",
+                bio: "Британская художница-иллюстратор, создающая волшебные акварельные миры.",
+                books: "Снежинки-балеринки, Фея-крёстная",
+                fact: "Сама занималась балетом в детстве!"
+            }
+        };
+
+        const quotes = [
+            { text: "В каждой снежинке живёт маленькое чудо, нужно только поверить в него.", author: "Снежный сон" },
+            { text: "Дружба согревает сердце даже в самую холодную зимнюю ночь.", author: "Снежная королева" },
+            { text: "Даже самый маленький может совершить большие дела, если верит в себя.", author: "Маленький Дед Мороз" },
+            { text: "Новый год — это время волшебства, когда сбываются самые заветные мечты.", author: "Снегурочка" },
+            { text: "Лучший подарок — это любовь и забота о близких.", author: "Слонёнок Оливер" },
+            { text: "Зима учит нас радоваться простым вещам: снегу, теплу домашнего очага и доброй сказке.", author: "Первый снег" },
+            { text: "Настоящее волшебство начинается тогда, когда мы дарим радость другим.", author: "Чик и Брики" },
+            { text: "Доброе сердце дороже всех сокровищ мира.", author: "Щелкунчик" }
+        ];
+
+        const adventSurprises = Array.from({length: 25}, (_, i) => ({
+            title: `День ${i+1}`,
+            content: `Сюрприз дня ${i+1}! ${["Разгадай загадку: что зимой и летом одним цветом?", "Знаешь ли ты, что каждая снежинка уникальна?", "Нарисуй Деда Мороза!", "Спой песню про ёлочку!", "Слепи снеговика!", "Выучи стихотворение про зиму!", "Сделай гирлянду!", "Напиши письмо Деду Морозу!"][i % 8]}`,
+            icon: ["🎁","❄️","🎨","📖","⛄","🎵","✂️","✉️"][i % 8]
+        }));
+
+        const santaMessages = [
+            "Ищи спрятанные игрушки по всей странице! 🎁",
+            "Попробуй ночной режим - там красивое северное сияние! 🌌",
+            "Выполни все задания читательского челленджа! 📖",
+            "Ответь правильно на все вопросы викторины! 🎯",
+            "Открывай адвент-календарь каждый день декабря! 🎄",
+            "Включи музыку для создания праздничного настроения! 🎵",
+            "Посмотри трейлеры в кинозале! 🎬",
+            "Прочитай цитаты из новогодних книг! ✨"
+        ];
+
+        const toyEmojis = ['🎁','🎄','⛄','🎅','⭐','🔔','🎀','🧦','🕯️','🎊'];
+        const challenges = [
+            "Прочитай новогоднее стихотворение вслух",
+            "Найди книгу про Деда Мороза или Снегурочку",
+            "Нарисуй своего любимого новогоднего героя",
+            "Расскажи сказку другу или родителям",
+            "Сделай новогоднюю поделку своими руками",
+            "Посмотри новогодний мультфильм"
+        ];
+        const quizQuestions = [
+            { question: "Кто написал сказку 'Снежная королева'?", options: ["Ганс Христиан Андерсен","Братья Гримм","Шарль Перро","Александр Пушкин"], correct: 0 },
+            { question: "Как звали девочку, которая спасла Кая?", options: ["Снегурочка","Герда","Алиса","Золушка"], correct: 1 },
+            { question: "Из чего была сделана Снегурочка?", options: ["Изо льда","Из снега","Из облака","Из инея"], correct: 1 }
+        ];
+
+        // СИСТЕМА СОХРАНЕНИЯ ПРОГРЕССА
+        const Progress = {
+            load() {
+                return {
+                    toys: parseInt(localStorage.getItem('toys') || '0'),
+                    challenges: JSON.parse(localStorage.getItem('challenges') || '[]'),
+                    quizBest: parseInt(localStorage.getItem('quizBest') || '0'),
+                    badges: JSON.parse(localStorage.getItem('badges') || '[]'),
+                };
+            },
+            save(key, value) {
+                localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+            },
+            reset() {
+                if (confirm('Точно хочешь сбросить весь прогресс?')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        };
+
+        const savedProgress = Progress.load();
+        let toysFound = savedProgress.toys;
+        let completedChallenges = savedProgress.challenges.length;
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizBestScore = savedProgress.quizBest;
+        let musicPlaying = false;
+        let nightMode = false;
+        let santaMessageIndex = 0;
+
+        // Canvas снег
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const snowflakes = [];
+        const maxSnowflakes = 30;
+
+        for (let i = 0; i < maxSnowflakes; i++) {
+            snowflakes.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 3 + 1,
+                speed: Math.random() * 1 + 0.5,
+                wind: Math.random() * 0.5 - 0.25
+            });
+        }
+
+        function animateSnow() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = 'white';
+            
+            snowflakes.forEach(flake => {
+                ctx.beginPath();
+                ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                flake.y += flake.speed;
+                flake.x += flake.wind;
+                
+                if (flake.y > canvas.height) {
+                    flake.y = 0;
+                    flake.x = Math.random() * canvas.width;
+                }
+            });
+            
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Создание игрушек
+        function createHiddenToys() {
+            if (toysFound >= 10) return;
+            
+            const positions = [
+                {top:'15%',left:'10%'},{top:'25%',right:'15%'},{top:'45%',left:'5%'},
+                {top:'55%',right:'8%'},{top:'35%',left:'50%'},{top:'65%',left:'20%'},
+                {top:'75%',right:'25%'},{top:'85%',left:'40%'},{top:'70%',right:'45%'},{top:'90%',left:'70%'}
+            ];
+            
+            const foundToys = JSON.parse(localStorage.getItem('foundToyIndexes') || '[]');
+            
+            positions.forEach((pos, i) => {
+                if (foundToys.includes(i)) return;
+                
+                const toy = document.createElement('div');
+                toy.className = 'hidden-toy';
+                toy.textContent = toyEmojis[i];
+                Object.assign(toy.style, pos);
+                
+                toy.onclick = function() {
+                    this.classList.add('found');
+                    toysFound++;
+                    document.getElementById('toyScore').textContent = toysFound;
+                    
+                    foundToys.push(i);
+                    Progress.save('foundToyIndexes', foundToys);
+                    Progress.save('toys', toysFound);
+                    
+                    setTimeout(() => this.remove(), 500);
+                    
+                    if (toysFound === 5) showSantaMessage("Половина найдена! 🎉");
+                    if (toysFound === 10) {
+                        showSantaMessage("Все игрушки найдены! Ты мастер! 🏆");
+                        addBadge('🏆 Мастер поиска');
+                    }
+                };
+                
+                document.body.appendChild(toy);
+            });
+        }
+
+        function addBadge(text, shouldSave = true) {
+            const existingBadges = document.querySelectorAll('.badge');
+            for (let badge of existingBadges) {
+                if (badge.textContent === text) return;
+            }
+            
+            const badge = document.createElement('div');
+            badge.className = 'badge';
+            badge.textContent = text;
+            document.getElementById('badges').appendChild(badge);
+            
+            if (shouldSave) {
+                const badges = JSON.parse(localStorage.getItem('badges') || '[]');
+                if (!badges.includes(text)) {
+                    badges.push(text);
+                    Progress.save('badges', badges);
+                }
+            }
+        }
+
+        // Переключатели
+        document.getElementById('themeToggle').onclick = () => {
+            nightMode = !nightMode;
+            document.body.classList.toggle('night-mode');
+            document.querySelector('.theme-icon').textContent = nightMode ? '🌙' : '☀️';
+            if (nightMode) showSantaMessage("Посмотри на северное сияние! 🌌");
+        };
+
+        document.getElementById('musicControl').onclick = () => {
+            const music = document.getElementById('bgMusic');
+            musicPlaying = !musicPlaying;
+            musicPlaying ? music.play() : music.pause();
+            document.getElementById('musicControl').classList.toggle('playing', musicPlaying);
+            document.querySelector('.music-icon').textContent = musicPlaying ? '🔊' : '🎵';
+            if (musicPlaying) showSantaMessage("Музыка создаёт праздничное настроение! 🎵");
+        };
+
+        document.getElementById('santaHelper').onclick = () => {
+            showSantaMessage(santaMessages[santaMessageIndex++ % santaMessages.length]);
+        };
+
+        let messageTimeout;
+        function showSantaMessage(text) {
+            const msg = document.getElementById('santaMessage');
+            msg.querySelector('p').textContent = text;
+            msg.classList.add('active');
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => msg.classList.remove('active'), 5000);
+        }
+
+        function generateQuote() {
+            const q = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quoteBox').innerHTML = `
+                <div>"${q.text}"</div>
+                <div class="quote-author">— ${q.author}</div>
+            `;
+        }
+
+        function updateCountdown() {
+            const distance = new Date('2026-01-01') - new Date();
+            const days = Math.floor(distance / 86400000);
+            const hours = Math.floor((distance % 86400000) / 3600000);
+            const minutes = Math.floor((distance % 3600000) / 60000);
+            const seconds = Math.floor((distance % 60000) / 1000);
+            document.getElementById('countdown').textContent = `${days}д ${hours}ч ${minutes}м ${seconds}с`;
+        }
+
+        function createAdventCalendar() {
+            const grid = document.getElementById('adventGrid');
+            const today = new Date().getDate();
+            const currentMonth = new Date().getMonth();
+            
+            for (let i = 1; i <= 25; i++) {
+                const door = document.createElement('div');
+                door.className = 'advent-door';
+                const canOpen = currentMonth === 11 && i <= today;
+                const isOpened = localStorage.getItem(`advent-${i}`) === 'opened';
+                
+                if (!canOpen) door.classList.add('locked');
+                if (isOpened) door.classList.add('opened');
+                
+                door.innerHTML = `
+                    <div class="advent-number">${i}</div>
+                    <div class="advent-icon">${isOpened ? '✅' : adventSurprises[i-1].icon}</div>
+                `;
+                
+                if (canOpen) {
+                    door.onclick = () => {
+                        document.getElementById('adventTitle').textContent = adventSurprises[i-1].title;
+                        document.getElementById('adventContent').textContent = adventSurprises[i-1].content;
+                        document.getElementById('adventModal').classList.add('active');
+                        document.getElementById('overlay').classList.add('active');
+                        localStorage.setItem(`advent-${i}`, 'opened');
+                        door.classList.add('opened');
+                        door.querySelector('.advent-icon').textContent = '✅';
+                    };
+                }
+                
+                grid.appendChild(door);
+            }
+        }
+
+        function closeAdventModal() {
+            document.getElementById('adventModal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function createChallenges() {
+            const list = document.getElementById('challengeList');
+            const savedChallenges = savedProgress.challenges;
+            
+            challenges.forEach((challenge, i) => {
+                const item = document.createElement('div');
+                item.className = 'challenge-item';
+                const isCompleted = savedChallenges.includes(i);
+                if (isCompleted) item.classList.add('completed');
+                
+                item.innerHTML = `
+                    <div class="checkbox ${isCompleted ? 'checked' : ''}" id="check-${i}"></div>
+                    <span>${challenge}</span>
+                `;
+                
+                item.onclick = () => {
+                    const checkbox = document.getElementById(`check-${i}`);
+                    const isChecked = checkbox.classList.toggle('checked');
+                    item.classList.toggle('completed');
+                    
+                    let completed = JSON.parse(localStorage.getItem('challenges') || '[]');
+                    if (isChecked && !completed.includes(i)) {
+                        completed.push(i);
+                        completedChallenges++;
+                    } else if (!isChecked && completed.includes(i)) {
+                        completed = completed.filter(c => c !== i);
+                        completedChallenges--;
+                    }
+                    
+                    Progress.save('challenges', completed);
+                    
+                    const progress = (completedChallenges / challenges.length) * 100;
+                    const fill = document.getElementById('progressFill');
+                    fill.style.width = progress + '%';
+                    fill.textContent = Math.round(progress) + '%';
+                    
+                    if (completedChallenges === challenges.length) {
+                        showSantaMessage("Все задания выполнены! 🎉📖");
+                        addBadge('📚 Чемпион чтения');
+                    }
+                };
+                list.appendChild(item);
+            });
+            
+            const progress = (completedChallenges / challenges.length) * 100;
+            const fill = document.getElementById('progressFill');
+            fill.style.width = progress + '%';
+            fill.textContent = Math.round(progress) + '%';
+        }
+
+        function loadQuiz() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                document.getElementById('quizContent').innerHTML = `
+                    <div class="quiz-result success">
+                        🎉 Результат: ${quizScore}/${quizQuestions.length}!
+                        ${quizBestScore > 0 ? `<br>🏆 Лучший результат: ${quizBestScore}/${quizQuestions.length}` : ''}
+                        <br><button class="author-btn" onclick="currentQuizIndex=0;quizScore=0;loadQuiz()" style="margin-top:20px">Начать заново</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const q = quizQuestions[currentQuizIndex];
+            let html = `<div class="quiz-question">${q.question}</div><div class="quiz-options">`;
+            q.options.forEach((opt, i) => {
+                html += `<div class="quiz-option" onclick="checkAnswer(${i})">${opt}</div>`;
+            });
+            document.getElementById('quizContent').innerHTML = html + '</div>';
+        }
+
+        function checkAnswer(selected) {
+            const q = quizQuestions[currentQuizIndex];
+            const options = document.querySelectorAll('.quiz-option');
+            options[selected].classList.add(selected === q.correct ? 'correct' : 'wrong');
+            options[q.correct].classList.add('correct');
+            if (selected === q.correct) quizScore++;
+            
+            setTimeout(() => {
+                currentQuizIndex++;
+                if (currentQuizIndex >= quizQuestions.length) {
+                    if (quizScore > quizBestScore) {
+                        quizBestScore = quizScore;
+                        Progress.save('quizBest', quizScore);
+                        showSantaMessage(`Новый рекорд: ${quizScore}/${quizQuestions.length}! 🎯`);
+                        if (quizScore === quizQuestions.length) addBadge('🎯 Знаток сказок');
+                    }
+                }
+                loadQuiz();
+            }, 1500);
+        }
+
+        function createBooks() {
+            const container = document.getElementById('books');
+            books.forEach((book, i) => {
+                const el = document.createElement('div');
+                el.className = 'book';
+                el.innerHTML = `
+                    <div class="book-inner">
+                        <div class="book-front">
+                            <img src="${book.cover}" alt="${book.title}" loading="lazy">
+                        </div>
+                        <div class="book-back">
+                            <div class="book-desc">
+                                <span class="close" onclick="closeBook()">×</span>
+                                <h3>${book.title}</h3>
+                                <p><strong>Автор:</strong> ${book.author}</p>
+                                <p>${book.description}</p>
+                                <button class="author-btn" onclick="showAuthor(${i})">🎅 Об авторе</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                el.onclick = (e) => {
+                    if (e.target.closest('.close') || e.target.closest('.author-btn')) return;
+                    document.querySelectorAll('.book.active').forEach(b => b !== el && b.classList.remove('active'));
+                    el.classList.toggle('active');
+                    document.getElementById('overlay').classList.toggle('active', el.classList.contains('active'));
+                    document.body.style.overflow = el.classList.contains('active') ? 'hidden' : '';
+                };
+                container.appendChild(el);
+            });
+        }
+
+        function closeBook() {
+            document.querySelectorAll('.book.active').forEach(b => b.classList.remove('active'));
+            document.getElementById('overlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showAuthor(index) {
+            closeBook();
+            const author = books[index].author;
+            const info = authorsInfo[author];
+            document.getElementById('books').style.display = 'none';
+            const section = document.getElementById('authors');
+            section.style.display = 'block';
+            document.getElementById('author-content').innerHTML = `
+                <div class="author-section">
+                    <img src="${info.photo}" alt="${author}" class="author-photo">
+                    <h2>${author}</h2>
+                    <div class="author-info">
+                        <p><strong>📖 Биография:</strong> ${info.bio}</p>
+                        <p><strong>📚 Книги:</strong> ${info.books}</p>
+                        <p><strong>✨ Факт:</strong> ${info.fact}</p>
+                        <button onclick="document.getElementById('books').style.display='flex';document.getElementById('authors').style.display='none'" class="author-btn">← К книгам</button>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => document.querySelector('.author-info').classList.add('active'), 100);
+            section.scrollIntoView({behavior: 'smooth'});
+        }
+
+        function openTrailer(url) {
+            window.open(url, '_blank');
+            showSantaMessage("Приятного просмотра! 🎬");
+        }
+
+        document.getElementById('overlay').onclick = () => {
+            closeBook();
+            closeAdventModal();
+        };
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('toyScore').textContent = toysFound;
+            savedProgress.badges.forEach(badge => addBadge(badge, false));
+            
+            if (toysFound > 0 || completedChallenges > 0) {
+                setTimeout(() => showSantaMessage('С возвращением! Твой прогресс сохранён! 🎅'), 2000);
+            } else {
+                setTimeout(() => showSantaMessage('Привет! Найди все игрушки и выполни задания! 🎅'), 2000);
+            }
+        });
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        createAdventCalendar();
+        createChallenges();
+        loadQuiz();
+        createBooks();
+        createHiddenToys();
+    </script>
+</body>
+</html>
